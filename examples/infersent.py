@@ -17,14 +17,16 @@ import torch
 import logging
 
 # get models.py from InferSent repo
-from models import InferSent
+from models_infersent import InferSent
 
 # Set PATHs
 PATH_SENTEVAL = '../'
 PATH_TO_DATA = '../data'
-PATH_TO_W2V = 'PATH/TO/glove.840B.300d.txt'  # or crawl-300d-2M.vec for V2
-MODEL_PATH = 'infersent1.pkl'
-V = 1 # version of InferSent
+PATH_TO_W2V = '../../Données/crawl-300d-2M.vec'  # or crawl-300d-2M.vec for V2
+# PATH_TO_W2V = 'PATH/TO/glove.840B.300d.txt'  # or crawl-300d-2M.vec for V2
+MODEL_PATH = '../../Données/infersent1.pkl'
+# MODEL_PATH = 'infersent1.pkl'
+V = 2 # version of InferSent
 
 assert os.path.isfile(MODEL_PATH) and os.path.isfile(PATH_TO_W2V), \
     'Set MODEL and GloVe PATHs'
@@ -49,7 +51,7 @@ Evaluation of trained model on Transfer Tasks (SentEval)
 """
 
 # define senteval params
-params_senteval = {'task_path': PATH_TO_DATA, 'usepytorch': True, 'kfold': 5}
+params_senteval = {'task_path': PATH_TO_DATA, 'usepytorch': False, 'kfold': 5}
 params_senteval['classifier'] = {'nhid': 0, 'optim': 'rmsprop', 'batch_size': 128,
                                  'tenacity': 3, 'epoch_size': 2}
 # Set up logger
@@ -63,13 +65,17 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(MODEL_PATH))
     model.set_w2v_path(PATH_TO_W2V)
 
+    # params_senteval['infersent'] = model()
     params_senteval['infersent'] = model.cuda()
 
     se = senteval.engine.SE(params_senteval, batcher, prepare)
-    transfer_tasks = ['STS12', 'STS13', 'STS14', 'STS15', 'STS16',
-                      'MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'SST5', 'TREC', 'MRPC',
-                      'SICKEntailment', 'SICKRelatedness', 'STSBenchmark',
-                      'Length', 'WordContent', 'Depth', 'TopConstituents',
+    # transfer_tasks = ['STS12', 'STS13', 'STS14', 'STS15', 'STS16',
+    #                   'MR', 'CR', 'MPQA', 'SUBJ', 'SST2', 'SST5', 'TREC', 'MRPC',
+    #                   'SICKEntailment', 'SICKRelatedness', 'STSBenchmark',
+    #                   'Length', 'WordContent', 'Depth', 'TopConstituents',
+    #                   'BigramShift', 'Tense', 'SubjNumber', 'ObjNumber',
+    #                   'OddManOut', 'CoordinationInversion']
+    transfer_tasks = ['Length', 'Depth', 'TopConstituents',
                       'BigramShift', 'Tense', 'SubjNumber', 'ObjNumber',
                       'OddManOut', 'CoordinationInversion']
     results = se.eval(transfer_tasks)
